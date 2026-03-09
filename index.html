@@ -1,16 +1,128 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>自己紹介</title>
+<meta charset="UTF-8">
+<title>スプラトゥーン風ミニゲーム</title>
+<style>
+body{
+    margin:0;
+    background:#111;
+    color:white;
+    font-family:sans-serif;
+    text-align:center;
+}
+
+h1{
+    margin:10px;
+}
+
+#gameCanvas{
+    background:#eee;
+    border:4px solid #333;
+}
+
+#score{
+    font-size:20px;
+    margin:10px;
+}
+</style>
 </head>
+
 <body>
 
-    <h1>自己紹介</h1>
+<h1>スプラトゥーン風 インク塗りゲーム</h1>
+<div id="score">Score : 0</div>
+<canvas id="gameCanvas" width="600" height="400"></canvas>
 
-    <p>こんにちは。</p>
-    <p>私の名前は <strong>村田透麻</strong> です。</p>
-    <p>よろしくお願いします。</p>
+<script>
+
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let bullets = [];
+let tiles = [];
+let score = 0;
+
+const tileSize = 20;
+
+for(let x=0;x<canvas.width;x+=tileSize){
+    for(let y=0;y<canvas.height;y+=tileSize){
+        tiles.push({x:x,y:y,paint:false});
+    }
+}
+
+function drawTiles(){
+    tiles.forEach(t=>{
+        if(t.paint){
+            ctx.fillStyle="#ff7f00";
+        }else{
+            ctx.fillStyle="#dddddd";
+        }
+        ctx.fillRect(t.x,t.y,tileSize,tileSize);
+    });
+}
+
+function drawBullets(){
+    ctx.fillStyle="#ff7f00";
+    bullets.forEach(b=>{
+        ctx.beginPath();
+        ctx.arc(b.x,b.y,6,0,Math.PI*2);
+        ctx.fill();
+    });
+}
+
+canvas.addEventListener("click",(e)=>{
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    bullets.push({
+        x:canvas.width/2,
+        y:canvas.height-20,
+        vx:(mx-canvas.width/2)/20,
+        vy:(my-(canvas.height-20))/20
+    });
+});
+
+function updateBullets(){
+
+    bullets.forEach(b=>{
+        b.x += b.vx;
+        b.y += b.vy;
+
+        tiles.forEach(t=>{
+            if(!t.paint &&
+               b.x>t.x && b.x<t.x+tileSize &&
+               b.y>t.y && b.y<t.y+tileSize){
+                t.paint = true;
+                score++;
+                document.getElementById("score").innerText="Score : "+score;
+            }
+        });
+    });
+
+}
+
+function drawPlayer(){
+    ctx.fillStyle="#333";
+    ctx.fillRect(canvas.width/2-10,canvas.height-20,20,20);
+}
+
+function gameLoop(){
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawTiles();
+    updateBullets();
+    drawBullets();
+    drawPlayer();
+
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+
+</script>
 
 </body>
 </html>
